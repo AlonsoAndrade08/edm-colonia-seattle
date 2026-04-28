@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EDM Colonia Seattle · Nubby Analytics</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root[data-theme="dark"] {
+  --bg: #060f1a;
+  --surface: #0d1e2e;
+  --surface2: #122436;
+  --border: rgba(255,255,255,0.07);
+  --text: #e8f4f4;
+  --text-muted: #7fa8b8;
+  --primary: #0e9090;
+  --primary-glow: rgba(14,144,144,0.25);
+  --accent: #4ecdc4;
+  --accent2: #1a6e6e;
+  --positive: #2ecc71;
+  --negative: #e74c3c;
+  --warning: #f39c12;
+  --card-shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+:root[data-theme="light"] {
+  --bg: #f0f5f5;
+  --surface: #ffffff;
+  --surface2: #e8f2f2;
+  --border: rgba(0,0,0,0.08);
+  --text: #0d2233;
+  --text-muted: #4a7a8a;
+  --primary: #0b7272;
+  --primary-glow: rgba(11,114,114,0.15);
+  --accent: #0b9090;
+  --accent2: #c8e8e8;
+  --positive: #27ae60;
+  --negative: #c0392b;
+  --warning: #d68910;
+  --card-shadow: 0 4px 16px rgba(0,0,0,0.1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;transition:background .3s,color .3s}
+/* HEADER */
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;box-shadow:var(--card-shadow)}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:34px;height:34px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;color:#fff;letter-spacing:-1px}
+.logo-text{font-size:13px;font-weight:600;color:var(--text-muted)}
+.logo-title{font-size:15px;font-weight:700;color:var(--text)}
+.header-right{display:flex;align-items:center;gap:16px}
+.project-tag{background:var(--primary-glow);border:1px solid var(--primary);color:var(--accent);padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.5px}
+.theme-toggle{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:6px 14px;border-radius:20px;cursor:pointer;font-size:12px;transition:all .2s}
+.theme-toggle:hover{background:var(--primary);color:#fff}
+/* TABS */
+nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;gap:0;overflow-x:auto}
+.tab{padding:14px 20px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text-muted);border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s;letter-spacing:.3px;text-transform:uppercase}
+.tab:hover{color:var(--text);background:var(--surface2)}
+.tab.active{color:var(--accent);border-bottom-color:var(--primary)}
+/* MAIN */
+main{padding:2rem;max-width:1600px;margin:0 auto}
+.tab-content{display:none}
+.tab-content.active{display:block}
+/* CARDS */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-bottom:2rem}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 18px;position:relative;overflow:hidden}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--primary)}
+.kpi-label{font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px}
+.kpi-value{font-size:26px;font-weight:800;color:var(--text);line-height:1}
+.kpi-sub{font-size:11px;color:var(--text-muted);margin-top:6px}
+.kpi-card.accent::before{background:var(--accent)}
+.kpi-card.positive::before{background:var(--positive)}
+.kpi-card.warning::before{background:var(--warning)}
+.kpi-card.negative::before{background:var(--negative)}
+/* CHARTS */
+.chart-grid{display:grid;gap:20px;margin-bottom:20px}
+.chart-grid-2{grid-template-columns:1fr 1fr}
+.chart-grid-3{grid-template-columns:1fr 1fr 1fr}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+.chart-title{font-size:12px;font-weight:700;color:var(--text-muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px}
+.chart-subtitle{font-size:11px;color:var(--text-muted);margin-bottom:16px;opacity:.7}
+canvas{max-width:100%}
+/* TABLE */
+.data-table{width:100%;border-collapse:collapse;font-size:12px}
+.data-table th{background:var(--surface2);color:var(--text-muted);font-weight:700;font-size:10px;letter-spacing:.5px;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.data-table td{padding:11px 14px;border-bottom:1px solid var(--border);color:var(--text)}
+.data-table tr:hover td{background:var(--surface2)}
+.data-table tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.badge-res{background:rgba(14,144,144,0.2);color:var(--accent)}
+.badge-plus{background:rgba(243,156,18,0.2);color:var(--warning)}
+.badge-eco{background:rgba(46,204,113,0.2);color:var(--positive)}
+.leader{background:rgba(14,144,144,0.08);border-left:3px solid var(--primary)}
+/* SECTION HEADER */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.section-title{font-size:20px;font-weight:800;color:var(--text)}
+.section-tag{font-size:11px;color:var(--text-muted);background:var(--surface2);padding:4px 10px;border-radius:8px;border:1px solid var(--border)}
+/* ESCENARIOS */
+.scenario-layout{display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start}
+.controls-panel{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;position:sticky;top:80px}
+.controls-panel h3{font-size:13px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--accent);margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.control-group{margin-bottom:22px}
+.control-label{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.4px;text-transform:uppercase;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.control-value{font-size:14px;font-weight:800;color:var(--accent)}
+input[type=range]{width:100%;accent-color:var(--primary);height:4px;cursor:pointer}
+.scenario-compare{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
+.scenario-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;transition:all .2s}
+.scenario-card.active-scenario{border-color:var(--primary);background:var(--primary-glow)}
+.scenario-card h4{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:10px}
+.scenario-metric{font-size:22px;font-weight:900;color:var(--text);margin:4px 0}
+.scenario-metric-label{font-size:10px;color:var(--text-muted)}
+.output-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+.output-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.output-card-value{font-size:24px;font-weight:900;color:var(--accent)}
+.output-card-label{font-size:10px;color:var(--text-muted);margin-top:4px;text-transform:uppercase;letter-spacing:.4px;font-weight:700}
+.insight-box{background:var(--primary-glow);border:1px solid var(--primary);border-radius:10px;padding:14px 16px;margin-top:16px}
+.insight-box p{font-size:12px;color:var(--text);line-height:1.6}
+.insight-box strong{color:var(--accent)}
+/* FINANCIERO */
+.fin-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.input-group{margin-bottom:16px}
+.input-label{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px}
+input[type=number]{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:14px;font-weight:600;outline:none;transition:border .2s}
+input[type=number]:focus{border-color:var(--primary)}
+.result-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.result-name{font-size:12px;color:var(--text-muted);font-weight:600}
+.result-value{font-size:18px;font-weight:900;color:var(--text)}
+.result-value.pos{color:var(--positive)}
+.result-value.neg{color:var(--negative)}
+/* FODA */
+.foda-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.foda-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px}
+.foda-card h3{font-size:13px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.foda-dot{width:10px;height:10px;border-radius:50%}
+.foda-f .foda-dot{background:var(--positive)}
+.foda-o .foda-dot{background:var(--accent)}
+.foda-d .foda-dot{background:var(--warning)}
+.foda-a .foda-dot{background:var(--negative)}
+.foda-card ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+.foda-card li{font-size:12px;color:var(--text-muted);padding-left:14px;position:relative;line-height:1.5}
+.foda-card li::before{content:'→';position:absolute;left:0;color:var(--primary)}
+/* AMENIDADES */
+.amenidad-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;gap:20px;margin-bottom:16px;align-items:flex-start}
+.amenidad-icon{font-size:28px;flex-shrink:0;width:52px;height:52px;background:var(--primary-glow);border-radius:10px;display:flex;align-items:center;justify-content:center}
+.amenidad-content h4{font-size:13px;font-weight:800;color:var(--text);margin-bottom:6px}
+.amenidad-content p{font-size:12px;color:var(--text-muted);line-height:1.6}
+/* PROGRESS BARS */
+.progress-bar-wrap{margin-bottom:12px}
+.progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px}
+.progress-track{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;background:var(--primary);transition:width .5s}
+/* DIVIDER */
+.divider{border:none;border-top:1px solid var(--border);margin:24px 0}
+/* RESPONSIVE HELPERS */
+@media(max-width:900px){
+  .chart-grid-2,.chart-grid-3,.scenario-layout,.fin-grid,.foda-grid{grid-template-columns:1fr}
+  .scenario-compare{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">N</div>
+    <div>
+      <div class="logo-text">Humanizando los datos</div>
+      <div class="logo-title">EDM Colonia Seattle</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="project-tag">Zapopan · 2025</span>
+    <button class="theme-toggle" onclick="toggleTheme()">☀️ Claro</button>
+  </div>
+</header>
+
+<nav>
+  <div class="tab active" onclick="showTab('resumen')">Resumen Ejecutivo</div>
+  <div class="tab" onclick="showTab('mercado')">Mercado</div>
+  <div class="tab" onclick="showTab('competencia')">Competencia</div>
+  <div class="tab" onclick="showTab('producto')">Producto Estrella</div>
+  <div class="tab" onclick="showTab('escenarios')">⚡ Escenarios</div>
+  <div class="tab" onclick="showTab('financiero')">Financiero</div>
+  <div class="tab" onclick="showTab('foda')">FODA</div>
+</nav>
+
+<main>
+
+<!-- ===== RESUMEN ===== -->
+<div id="tab-resumen" class="tab-content active">
+  <div class="section-header">
+    <div class="section-title">Resumen Ejecutivo</div>
+    <div class="section-tag">8 Desarrollos · 1,089 Unidades · Zapopan</div>
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi-card accent"><div class="kpi-label">Inventario Total</div><div class="kpi-value">1,089</div><div class="kpi-sub">Unidades en zona</div></div>
+    <div class="kpi-card positive"><div class="kpi-label">Vendidas</div><div class="kpi-value">737</div><div class="kpi-sub">67.7% del inventario</div></div>
+    <div class="kpi-card warning"><div class="kpi-label">Disponibles</div><div class="kpi-value">352</div><div class="kpi-sub">32.3% disponible</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Absorción Zona</div><div class="kpi-value">22.63</div><div class="kpi-sub">unidades/mes</div></div>
+    <div class="kpi-card"><div class="kpi-label">Absorción Proyecto</div><div class="kpi-value">3.27</div><div class="kpi-sub">promedio u/mes</div></div>
+    <div class="kpi-card"><div class="kpi-label">M² Promedio</div><div class="kpi-value">67.52</div><div class="kpi-sub">metros totales</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Precio / m²</div><div class="kpi-value">$60.2k</div><div class="kpi-sub">promedio zona</div></div>
+    <div class="kpi-card"><div class="kpi-label">Ticket Promedio</div><div class="kpi-value">$4.17M</div><div class="kpi-sub">precio de lista</div></div>
+    <div class="kpi-card positive"><div class="kpi-label">Meses Cierre</div><div class="kpi-value">15.56</div><div class="kpi-sub">para inventario actual</div></div>
+    <div class="kpi-card"><div class="kpi-label">Avance Obra</div><div class="kpi-value">71.25%</div><div class="kpi-sub">promedio zona</div></div>
+    <div class="kpi-card"><div class="kpi-label">Densidad/Proyecto</div><div class="kpi-value">168</div><div class="kpi-sub">unidades promedio</div></div>
+    <div class="kpi-card negative"><div class="kpi-label">MDI</div><div class="kpi-value">48 m</div><div class="kpi-sub">meses de inventario total</div></div>
+  </div>
+
+  <div class="chart-grid chart-grid-2">
+    <div class="chart-card">
+      <div class="chart-title">Absorción por Desarrollo</div>
+      <div class="chart-subtitle">Unidades vendidas por mes · Sweet spot objetivo: 3.85+</div>
+      <canvas id="c-absorcion" height="220"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Distribución de Mercado</div>
+      <div class="chart-subtitle">Vendido vs. Disponible · 1,089 unidades</div>
+      <canvas id="c-dist" height="220"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-grid chart-grid-3">
+    <div class="chart-card">
+      <div class="chart-title">% por Recámaras</div>
+      <div class="chart-subtitle">Configuración dominante: 2 rec (53%)</div>
+      <canvas id="c-rec" height="180"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">% por Estacionamiento</div>
+      <div class="chart-subtitle">75% con doble cajón</div>
+      <canvas id="c-est" height="180"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">% por Baños</div>
+      <div class="chart-subtitle">62% con 2 baños</div>
+      <canvas id="c-ban" height="180"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MERCADO ===== -->
+<div id="tab-mercado" class="tab-content">
+  <div class="section-header">
+    <div class="section-title">Análisis de Mercado</div>
+    <div class="section-tag">Comportamiento por rango de superficie</div>
+  </div>
+  <div class="chart-grid chart-grid-2">
+    <div class="chart-card">
+      <div class="chart-title">Absorción por Rango de M²</div>
+      <div class="chart-subtitle">Sweet spot: 50-70 m² concentra 52% de la absorción total</div>
+      <canvas id="c-rangeabs" height="240"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Precio / m² vs. Absorción</div>
+      <div class="chart-subtitle">Correlación inversa a >$70k/m² · Resistencia a $75k+</div>
+      <canvas id="c-pvm2" height="240"></canvas>
+    </div>
+  </div>
+  <div class="chart-grid chart-grid-2">
+    <div class="chart-card">
+      <div class="chart-title">Oferta vs. Vendidos por Rango</div>
+      <div class="chart-subtitle">Liquidez del inventario por tamaño de unidad</div>
+      <canvas id="c-ofervend" height="220"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Ticket Promedio por Rango M²</div>
+      <div class="chart-subtitle">Techo de cristal comercial: $4.0M para compactos · $5M para 70-90m²</div>
+      <canvas id="c-ticket" height="220"></canvas>
+    </div>
+  </div>
+
+  <div class="section-header" style="margin-top:2rem">
+    <div class="section-title">Segmentos de Mercado Meta</div>
+  </div>
+  <div class="chart-grid chart-grid-3">
+    <div class="chart-card">
+      <div class="chart-title">Profesionales Jóvenes</div>
+      <div class="chart-subtitle">28–40 años · NSE B+/A</div>
+      <div style="margin-top:12px">
+        <div class="progress-bar-wrap"><div class="progress-label"><span>Edad objetivo</span><span>28–40 años</span></div></div>
+        <div class="progress-bar-wrap"><div class="progress-label"><span>M² buscados</span><span>55–75 m²</span></div><div class="progress-track"><div class="progress-fill" style="width:65%"></div></div></div>
+        <div class="progress-bar-wrap"><div class="progress-label"><span>Ticket target</span><span>$3.5M–$4.5M</span></div><div class="progress-track"><div class="progress-fill" style="width:72%"></div></div></div>
+        <div class="progress-bar-wrap"><div class="progress-label"><span>Recámaras</span><span>1–2</span></div><div class="progress-track"><div class="progress-fill" style="width:50%"></div></div></div>
+        <div class="insight-box" style="margin-top:12px"><p>Buscan <strong>primera propiedad patrimonial</strong>. Cercanía a corredores corporativos: Andares (11 min), Puerta de Hierro (13 min), Sao Paulo (9 min).</p></div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">DINKs</div>
+      <div class="chart-subtitle">32–45 años · Ingreso $90k–$180k/mes</div>
+      <div style="margin-top:12px">
+        <div class="progress-bar-wrap"><div class="progress-label"><span>M² buscados</span><span>70–90 m²</span></div><div class="progress-track"><div class="progress-fill" style="width:80%"></div></div></div>
+        <div class="progress-bar-wrap"><div class="progress-label"><span>Recámaras</span><span>2</span></div><div class="progress-track"><div class="progress-fill" style="width:70%"></div></div></div>
+        <div class="progress-bar-wrap"><div class="progress-label"><span>Baños</span><span>2</span></div><div class="progress-track"><div class="progress-fill" style="width:70%"></div></div></div>
+        <div class="progress-bar-wrap"><div class="progress-label"><span>Estacionamientos</span><span>1–2</span></div><div class="progress-track"><div class="progress-fill" style="width:65%"></div></div></div>
+        <div class="insight-box" style="margin-top:12px"><p>Migran de <strong>renta a propiedad</strong>. Buscan más espacio y mejor ubicación. Configuración dominante: 2 rec (53% del mercado).</p></div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Inversionista</div>
+      <div class="chart-subtitle">35–60 años · NSE A/B+</div>
+      <div style="margin-top:12px">
+        <div class="progress-bar-wrap"><div class="progress-label"><span>M² ideales</span><span>50–65 m²</span></div><div class="progress-track"><div class="progress-fill" style="width:57%"></div></div></div>
+        <div class="progress-bar-wrap"><div class="progress-label"><span>Recámaras</span><span>1</span></div><div class="progress-track"><div class="progress-fill" style="width:38%"></div></div></div>
+        <div class="progress-bar-wrap"><div class="progress-label"><span>Art Park 1rec</span><span>66% inventario</span></div><div class="progress-track"><div class="progress-fill" style="width:66%"></div></div></div>
+        <div class="progress-bar-wrap"><div class="progress-label"><span>Ilara Atemajac</span><span>56% de 1 rec</span></div><div class="progress-track"><div class="progress-fill" style="width:56%"></div></div></div>
+        <div class="insight-box" style="margin-top:12px"><p>Objetivo: <strong>renta tradicional, ejecutiva o estudiantil</strong>. Alta demanda en 1 rec valida el segmento de inversión.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== COMPETENCIA ===== -->
+<div id="tab-competencia" class="tab-content">
+  <div class="section-header">
+    <div class="section-title">Benchmarking Competidores</div>
+    <div class="section-tag">8 desarrollos activos · Zapopan</div>
+  </div>
+
+  <div class="chart-card" style="margin-bottom:20px;overflow-x:auto">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Desarrollo</th>
+          <th>Tipo</th>
+          <th>Inicio</th>
+          <th>Entrega</th>
+          <th>Oferta</th>
+          <th>Vendidos</th>
+          <th>% Venta</th>
+          <th>M² Prom</th>
+          <th>Precio Lista</th>
+          <th>$/m²</th>
+          <th>Absorción</th>
+        </tr>
+      </thead>
+      <tbody id="comp-table"></tbody>
+    </table>
+  </div>
+
+  <div class="chart-grid chart-grid-2">
+    <div class="chart-card">
+      <div class="chart-title">Precio/m² vs. Absorción por Proyecto</div>
+      <div class="chart-subtitle">Tamaño de burbuja = unidades ofertadas</div>
+      <canvas id="c-bubble" height="280"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Cronograma de Comercialización</div>
+      <div class="chart-subtitle">Ventana crítica de consolidación 2026–2027</div>
+      <canvas id="c-gantt" height="280"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PRODUCTO ESTRELLA ===== -->
+<div id="tab-producto" class="tab-content">
+  <div class="section-header">
+    <div class="section-title">Producto Estrella</div>
+    <div class="section-tag">ADN del éxito en la zona · Algoritmo Nubby</div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card accent"><div class="kpi-label">Absorción Estrella</div><div class="kpi-value">3.85</div><div class="kpi-sub">unidades / mes</div></div>
+    <div class="kpi-card"><div class="kpi-label">Ticket Promedio</div><div class="kpi-value">$3.84M</div><div class="kpi-sub">precio de lista ideal</div></div>
+    <div class="kpi-card"><div class="kpi-label">Precio / m²</div><div class="kpi-value">$59,331</div><div class="kpi-sub">valor unitario validado</div></div>
+    <div class="kpi-card positive"><div class="kpi-label">Ancla Inventario</div><div class="kpi-value">70–80m²</div><div class="kpi-sub">45.27% del mix</div></div>
+    <div class="kpi-card warning"><div class="kpi-label">Niveles</div><div class="kpi-value">7.12</div><div class="kpi-sub">pisos estimados</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Valor Proyecto</div><div class="kpi-value">$337.6M</div><div class="kpi-sub">MXN · 88 unidades</div></div>
+  </div>
+
+  <div class="chart-grid chart-grid-2">
+    <div class="chart-card">
+      <div class="chart-title">Smart-Mix Tipologías</div>
+      <div class="chart-subtitle">Distribución óptima por segmento de m²</div>
+      <canvas id="c-smartmix" height="250"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Eficiencia Habitable por Tipología</div>
+      <div class="chart-subtitle">% área interna vs. exterior</div>
+      <canvas id="c-efic" height="250"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-grid chart-grid-3">
+    <div class="chart-card foda-card">
+      <h3 style="color:var(--accent);font-size:12px">Tipología A · 40–50 m²</h3>
+      <div style="font-size:11px;color:var(--text-muted);line-height:1.7">
+        <div>Ticket: <strong style="color:var(--text)">~$3.0M</strong></div>
+        <div>$/m²: <strong style="color:var(--text)">$62,530</strong></div>
+        <div>Exterior: <strong style="color:var(--text)">0 m² (100% habitable)</strong></div>
+        <div>Segmento: <strong style="color:var(--text)">Inversionista</strong></div>
+        <div>% Mix: <strong style="color:var(--text)">32.13%</strong></div>
+        <div class="insight-box" style="margin-top:10px"><p>Sin balcones. Máxima eficiencia interior. Tickets por debajo del umbral de resistencia.</p></div>
+      </div>
+    </div>
+    <div class="chart-card foda-card">
+      <h3 style="color:var(--warning);font-size:12px">Tipología C · 70–80 m² ⭐ Ancla</h3>
+      <div style="font-size:11px;color:var(--text-muted);line-height:1.7">
+        <div>Ticket: <strong style="color:var(--text)">~$4.3M</strong></div>
+        <div>$/m²: <strong style="color:var(--text)">$57,724</strong></div>
+        <div>Exterior: <strong style="color:var(--text)">3.13 m² balcón</strong></div>
+        <div>Segmento: <strong style="color:var(--text)">DINKs / Patrimonial</strong></div>
+        <div>% Mix: <strong style="color:var(--text)">45.27%</strong></div>
+        <div class="insight-box" style="margin-top:10px"><p><strong>Motor del inventario.</strong> Equilibrio perfecto precio-espacio. Máxima absorción esperada.</p></div>
+      </div>
+    </div>
+    <div class="chart-card foda-card">
+      <h3 style="color:var(--positive);font-size:12px">Tipología D · 90–100 m² Premium</h3>
+      <div style="font-size:11px;color:var(--text-muted);line-height:1.7">
+        <div>Ticket: <strong style="color:var(--text)">~$5.7M</strong></div>
+        <div>$/m²: <strong style="color:var(--text)">$58,788</strong></div>
+        <div>Exterior: <strong style="color:var(--text)">15.12 m² terraza</strong></div>
+        <div>Segmento: <strong style="color:var(--text)">Residencial Plus</strong></div>
+        <div>% Mix: <strong style="color:var(--text)">22.59%</strong></div>
+        <div class="insight-box" style="margin-top:10px"><p>Terraza obligatoria como diferenciador. Sin exterior: ticket no se sostiene.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ESCENARIOS ===== -->
+<div id="tab-escenarios" class="tab-content">
+  <div class="section-header">
+    <div class="section-title">⚡ Simulador de Escenarios</div>
+    <div class="section-tag">¿Qué pasaría si...? · Basado en datos reales de mercado</div>
+  </div>
+
+  <div class="scenario-layout">
+    <!-- PANEL DE CONTROLES -->
+    <div class="controls-panel">
+      <h3>Variables del Proyecto</h3>
+
+      <div class="control-group">
+        <div class="control-label">Precio / m² <span class="control-value" id="sv-pm2">$59,331</span></div>
+        <input type="range" id="sl-pm2" min="40000" max="82000" step="500" value="59331" oninput="updateScenario()">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:4px"><span>$40k</span><span>Sweet Spot</span><span>$82k</span></div>
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">Número de Unidades <span class="control-value" id="sv-units">88</span></div>
+        <input type="range" id="sl-units" min="40" max="200" step="1" value="88" oninput="updateScenario()">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:4px"><span>40</span><span>88 (PDF)</span><span>200</span></div>
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">M² Promedio Calculado <span class="control-value" id="sv-m2">74 m² prom</span></div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--text-muted)">Se calcula automáticamente del mix de tipologías</div>
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">Tip A · 40–50m² Inversionista <span class="control-value" id="sv-ta">32%</span></div>
+        <input type="range" id="sl-ta" min="0" max="60" step="1" value="32" oninput="updateScenario()">
+        <div style="font-size:10px;color:var(--text-muted);margin-top:3px">Ticket ~$2.9M · Sin balcón · 100% habitable</div>
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">Tip B · 60–70m² Motor 🔥 <span class="control-value" id="sv-tb">0%</span></div>
+        <input type="range" id="sl-tb" min="0" max="60" step="1" value="0" oninput="updateScenario()">
+        <div style="font-size:10px;color:var(--text-muted);margin-top:3px">Ticket ~$3.8M · Mayor absorción zona (6.06)</div>
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">Tip C · 70–80m² Ancla ⭐ <span class="control-value" id="sv-tc">45%</span></div>
+        <input type="range" id="sl-tc" min="0" max="70" step="1" value="45" oninput="updateScenario()">
+        <div style="font-size:10px;color:var(--text-muted);margin-top:3px">Ticket ~$4.4M · Balcón 3m² · DINKs</div>
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">Tip D · 90–100m² Premium <span class="control-value" id="sv-td">23%</span></div>
+        <input type="range" id="sl-td" min="0" max="50" step="1" value="23" oninput="updateScenario()">
+        <div style="font-size:10px;color:var(--text-muted);margin-top:3px">Ticket ~$5.6M · Terraza 15m² obligatoria</div>
+      </div>
+
+      <div id="mix-warning" style="display:none;background:rgba(243,156,18,0.15);border:1px solid var(--warning);border-radius:8px;padding:10px;font-size:11px;color:var(--warning);margin-top:8px">
+        ⚠️ El mix supera el 100%. Se normalizará automáticamente.
+      </div>
+
+      <hr class="divider">
+      <h3>Comparar Escenarios</h3>
+
+      <div class="scenario-compare">
+        <div class="scenario-card" onclick="loadScenario('conservador')">
+          <h4>Conservador</h4>
+          <div class="scenario-metric" id="sc-abs-cons">—</div>
+          <div class="scenario-metric-label">u/mes · $52k/m²</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:6px" id="sc-rev-cons">—</div>
+        </div>
+        <div class="scenario-card active-scenario" onclick="loadScenario('base')">
+          <h4>Base ⭐ Estrella</h4>
+          <div class="scenario-metric" id="sc-abs-base">3.85</div>
+          <div class="scenario-metric-label">u/mes · $59k/m²</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:6px" id="sc-rev-base">—</div>
+        </div>
+        <div class="scenario-card" onclick="loadScenario('agresivo')">
+          <h4>Agresivo</h4>
+          <div class="scenario-metric" id="sc-abs-agr">—</div>
+          <div class="scenario-metric-label">u/mes · $68k/m²</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:6px" id="sc-rev-agr">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL DE RESULTADOS -->
+    <div>
+      <div class="output-grid">
+        <div class="output-card"><div class="output-card-value" id="out-abs">3.85</div><div class="output-card-label">Absorción u/mes</div></div>
+        <div class="output-card"><div class="output-card-value" id="out-meses">22.9</div><div class="output-card-label">Meses cierre</div></div>
+        <div class="output-card"><div class="output-card-value" id="out-rev">$337.6M</div><div class="output-card-label">Revenue total</div></div>
+        <div class="output-card"><div class="output-card-value" id="out-ticket">$4.39M</div><div class="output-card-label">Ticket promedio</div></div>
+        <div class="output-card"><div class="output-card-value" id="out-mdi" style="color:var(--warning)">22.9</div><div class="output-card-label">MDI (meses)</div></div>
+        <div class="output-card"><div class="output-card-value" id="out-vs" style="color:var(--positive)">+17.8%</div><div class="output-card-label">vs. mercado</div></div>
+      </div>
+
+      <div class="chart-grid chart-grid-2" style="margin-bottom:20px">
+        <div class="chart-card">
+          <div class="chart-title">Curva Precio/m² vs. Absorción</div>
+          <div class="chart-subtitle">Posición actual del proyecto en el mercado</div>
+          <canvas id="c-esc-curve" height="240"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Impacto en Revenue</div>
+          <div class="chart-subtitle">Precio × Absorción × Tiempo · Análisis de sensibilidad</div>
+          <canvas id="c-esc-rev" height="240"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card" style="margin-bottom:20px">
+        <div class="chart-title">Proyección de Ventas Acumuladas</div>
+        <div class="chart-subtitle">Curva S de absorción · Meses desde lanzamiento</div>
+        <canvas id="c-esc-sales" height="200"></canvas>
+      </div>
+
+      <div class="chart-grid chart-grid-2">
+        <div class="chart-card">
+          <div class="chart-title">Comparativo de 3 Escenarios</div>
+          <div class="chart-subtitle">Absorción · Meses cierre · Revenue relativo</div>
+          <canvas id="c-esc-comp" height="220"></canvas>
+        </div>
+        <div class="chart-card">
+          <div id="insight-container">
+            <div class="chart-title">Diagnóstico Estratégico</div>
+            <div class="chart-subtitle">Basado en datos de mercado</div>
+            <div id="insight-text" style="margin-top:16px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FINANCIERO ===== -->
+<div id="tab-financiero" class="tab-content">
+  <div class="section-header">
+    <div class="section-title">Proyección Financiera</div>
+    <div class="section-tag">Ingresa los datos de tu proyecto</div>
+  </div>
+  <div class="fin-grid">
+    <div>
+      <div class="chart-card" style="margin-bottom:20px">
+        <div class="chart-title" style="margin-bottom:16px">Parámetros del Proyecto</div>
+        <div class="input-group"><div class="input-label">Unidades totales</div><input type="number" id="fi-units" value="88" oninput="calcFin()"></div>
+        <div class="input-group"><div class="input-label">M² promedio por unidad</div><input type="number" id="fi-m2" value="74" oninput="calcFin()"></div>
+        <div class="input-group"><div class="input-label">Precio de venta / m² (MXN)</div><input type="number" id="fi-pm2" value="59331" oninput="calcFin()"></div>
+        <div class="input-group"><div class="input-label">Costo construcción / m² (MXN)</div><input type="number" id="fi-cost" value="28000" oninput="calcFin()"></div>
+        <div class="input-group"><div class="input-label">Costo del predio (MXN)</div><input type="number" id="fi-land" value="15000000" oninput="calcFin()"></div>
+        <div class="input-group"><div class="input-label">Gastos indirectos + comercialización (%)</div><input type="number" id="fi-indirect" value="18" oninput="calcFin()"></div>
+      </div>
+    </div>
+    <div>
+      <div class="chart-card">
+        <div class="chart-title" style="margin-bottom:16px">Resultados del Modelo</div>
+        <div id="fin-results"></div>
+        <canvas id="c-fin-waterfall" height="280" style="margin-top:20px"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="chart-card" style="margin-top:20px">
+    <div class="chart-title">Flujo de Caja Estimado por Mes</div>
+    <div class="chart-subtitle">Basado en absorción de mercado y curva de ventas típica</div>
+    <canvas id="c-flujo" height="200"></canvas>
+  </div>
+</div>
+
+<!-- ===== FODA ===== -->
+<div id="tab-foda" class="tab-content">
+  <div class="section-header">
+    <div class="section-title">Análisis FODA</div>
+    <div class="section-tag">Colonia Seattle · Zapopan · 2025</div>
+  </div>
+  <div class="foda-grid" style="margin-bottom:24px">
+    <div class="chart-card foda-card foda-f">
+      <h3><span class="foda-dot"></span>Fortalezas</h3>
+      <ul>
+        <li>Ubicación consolidada en Colonia Seattle con identidad urbana propia</li>
+        <li>Cercanía a corredores corporativos: Andares (11 min), Puerta de Hierro (13 min), Av. Patria</li>
+        <li>Alta demanda validada en 60–85 m² que coincide con comportamiento de absorción de la zona</li>
+        <li>Sin competencia directa en radio menor a 1 km</li>
+        <li>Ventana de lanzamiento óptima: inventario actual se agota en 15.5 meses</li>
+      </ul>
+    </div>
+    <div class="chart-card foda-card foda-o">
+      <h3><span class="foda-dot"></span>Oportunidades</h3>
+      <ul>
+        <li>Crecimiento de compradores jóvenes profesionales que buscan vivienda con estilo de vida</li>
+        <li>Tendencia de espacios híbridos (trabajo + bienestar): coworking, wellness, Work Garden</li>
+        <li>Incremento en compras de inversión para renta, especialmente 1 y 2 recámaras</li>
+        <li>Demanda insatisfecha en 80–90 m² (16.2% de absorción vs. menor oferta)</li>
+        <li>Escasez de áreas exteriores en zona (promedio 2.63 m²): diferenciador con terrazas</li>
+      </ul>
+    </div>
+    <div class="chart-card foda-card foda-d">
+      <h3><span class="foda-dot"></span>Debilidades</h3>
+      <ul>
+        <li>Competencia con proyectos ya posicionados con avance comercial y reconocimiento de marca</li>
+        <li>Dependencia de narrativa de proyecto bien ejecutada (valor en concepto, no solo m²)</li>
+        <li>Sin historial previo en la colonia para esta desarrolladora</li>
+        <li>Riesgo de resistencia en preventa sin avance físico superior al 30%</li>
+      </ul>
+    </div>
+    <div class="chart-card foda-card foda-a">
+      <h3><span class="foda-dot"></span>Amenazas</h3>
+      <ul>
+        <li>Competencia creciente en desarrollos verticales en zonas cercanas con precios competitivos</li>
+        <li>Sensibilidad del mercado a tasas de interés y condiciones crediticias (impacto en absorción)</li>
+        <li>Cambios en normativas urbanas o densidades que modifiquen viabilidad o tiempos</li>
+        <li>Oferta futura post-2027 que presione precios o velocidad de ventas</li>
+        <li>MDI de zona: 48 meses total si no entra oferta nueva (sobreoferta latente)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-header"><div class="section-title">Amenidades Estratégicas Propuestas</div></div>
+  <div>
+    <div class="amenidad-card">
+      <div class="amenidad-icon">🌿</div>
+      <div class="amenidad-content"><h4>Work Garden</h4><p>Espacio de trabajo exterior bajo árboles con mesas, wifi de alta velocidad, enchufes y sombra natural. Tendencia post-pandemia. Atrae al comprador profesional que trabaja en modalidad híbrida y eleva el valor percibido del proyecto sin costo constructivo alto.</p></div>
+    </div>
+    <div class="amenidad-card">
+      <div class="amenidad-icon">🐾</div>
+      <div class="amenidad-content"><h4>Pet Spa + Pet Garden</h4><p>Estación de baño para mascotas, zona de secado, circuito de ejercicio para perros y bebederos. Las mascotas son factor decisivo para compradores jóvenes 28–40 años. Reduce presión sobre áreas interiores privativas.</p></div>
+    </div>
+    <div class="amenidad-card">
+      <div class="amenidad-icon">📦</div>
+      <div class="amenidad-content"><h4>Delivery Room Inteligente</h4><p>Lockers Amazon / Mercado Libre y espacio para paquetería grande. Reduce fricción operativa del edificio. Diferenciador funcional de alto impacto para el perfil de usuario digital-first y para la gestión de rentas ejecutivas.</p></div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ===================== DATA =====================
+const DEV = [
+  {name:'ART Park',type:'Residencial',start:2023.75,end:2026.08,offer:186,sold:154,m2:60.91,price:3708834,pm2:64004,abs:5.31},
+  {name:'Union Square',type:'Residencial Plus',start:2022.5,end:2027.17,offer:262,sold:190,m2:81.15,price:5214486,pm2:68366,abs:4.32},
+  {name:'Ilara Atemajac',type:'Residencial',start:2025.08,end:2027.5,offer:116,sold:38,m2:67.34,price:3016025,pm2:46436,abs:2.92},
+  {name:'CC F1',type:'Económica',start:2021.25,end:2026.42,offer:120,sold:120,m2:63.24,price:null,pm2:null,abs:2.67},
+  {name:'CC F3',type:'Residencial',start:2022.75,end:2028.67,offer:180,sold:95,m2:58.41,price:2442276,pm2:48845,abs:2.32},
+  {name:'CC F4',type:'Económica',start:2025.67,end:2028.67,offer:32,sold:12,m2:68.47,price:null,pm2:null,abs:2.00},
+  {name:'CC F2',type:'Residencial',start:2022.75,end:2026.42,offer:109,sold:77,m2:61.35,price:3257756,pm2:54040,abs:1.88},
+  {name:'Avila Zapopan',type:'Residencial Plus',start:2022.67,end:2027.92,offer:84,sold:51,m2:72.74,price:5969376,pm2:77883,abs:1.21}
+];
+const RANGES = [
+  {r:'40–50',offer:84,sold:57,m2:48.69,price:3062058,pm2:62529,abs:2.00},
+  {r:'50–60',offer:340,sold:192,m2:55.64,price:3665702,pm2:65149,abs:5.70},
+  {r:'60–70',offer:251,sold:205,m2:63.84,price:3255918,pm2:50227,abs:6.06},
+  {r:'70–80',offer:161,sold:106,m2:74.68,price:4310401,pm2:57723,abs:2.82},
+  {r:'80–90',offer:163,sold:115,m2:83.16,price:5475542,pm2:66014,abs:3.67},
+  {r:'90–100',offer:33,sold:25,m2:95.53,price:5733125,pm2:58788,abs:1.41},
+  {r:'100–110',offer:24,sold:20,m2:102.27,price:5658130,pm2:55471,abs:0.48},
+  {r:'110–120',offer:10,sold:7,m2:114.97,price:4006666,pm2:34982,abs:0.27}
+];
+
+// ===================== THEME =====================
+function toggleTheme(){
+  const h=document.documentElement;
+  const isD=h.getAttribute('data-theme')==='dark';
+  h.setAttribute('data-theme',isD?'light':'dark');
+  document.querySelector('.theme-toggle').textContent=isD?'🌙 Oscuro':'☀️ Claro';
+  rebuildCharts();
+}
+
+// ===================== TABS =====================
+function showTab(id){
+  document.querySelectorAll('.tab').forEach((t,i)=>{t.classList.toggle('active',['resumen','mercado','competencia','producto','escenarios','financiero','foda'][i]===id)});
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+}
+
+// ===================== HELPERS =====================
+const fmt=n=>n==null?'N/D':(n>=1e6?'$'+(n/1e6).toFixed(2)+'M':n>=1e3?'$'+(n/1e3).toFixed(1)+'k':'$'+n.toFixed(0));
+const fmtN=n=>n==null?'N/D':n.toLocaleString('es-MX');
+function getCSS(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
+function colors(){return{primary:getCSS('--primary'),accent:getCSS('--accent'),text:getCSS('--text'),muted:getCSS('--text-muted'),surface:getCSS('--surface'),surface2:getCSS('--surface2'),positive:getCSS('--positive'),negative:getCSS('--negative'),warning:getCSS('--warning'),border:getCSS('--border')}}
+
+// ===================== ABSORPTION MODEL (Producto Estrella) =====================
+// Producto Estrella validated parameters from PDF
+const ESTRELLA = {abs:3.85, pm2:59331, mixA:32.13, mixB:0, mixC:45.27, mixD:22.59};
+
+// M² promedio real de cada tipología (fuente: rangos del estudio)
+const TIP_M2 = {A:48.69, B:63.84, C:74.68, D:95.53};
+
+// Absorción por ticket: cuánto absorbe el mercado a ese precio total de venta
+// Calibrado con data real: ART Park $3.71M→5.31, Avila $5.97M→1.21, etc.
+function interpolatePts(x, pts){
+  if(x<=pts[0][0]) return pts[0][1];
+  if(x>=pts[pts.length-1][0]) return pts[pts.length-1][1];
+  for(let i=0;i<pts.length-1;i++){
+    if(x>=pts[i][0]&&x<=pts[i+1][0]){
+      const t=(x-pts[i][0])/(pts[i+1][0]-pts[i][0]);
+      return pts[i][1]+t*(pts[i+1][1]-pts[i][1]);
+    }
+  }
+  return 3.27;
+}
+
+function absForTicket(ticket){
+  // Curva de absorción vs. ticket de venta (MXN)
+  // Validada con: ART Park $3.71M=5.31, Union Sq $5.21M=4.32, CC F3 $2.44M=2.32
+  // Avila Zapopan $5.97M=1.21, Ilara $3.02M=2.92, CC F2 $3.26M=1.88
+  const pts=[
+    [1800000,4.2],[2200000,4.8],[2442276,2.32],[2700000,3.8],
+    [3016025,2.92],[3200000,4.0],[3257756,1.88],[3600000,4.5],
+    [3708834,5.31],[3800000,5.5],[4000000,4.8],[4165547,4.2],
+    [4310401,3.6],[4500000,3.0],[4800000,2.2],[5000000,1.9],
+    [5214486,4.32],[5300000,2.8],[5475542,2.5],[5733125,1.41],
+    [5969376,1.21],[6500000,0.9],[7500000,0.6]
+  ];
+  // Nota: Union Square ($5.21M → 4.32) es Residencial Plus con metraje amplio (81m²)
+  // que justifica ticket alto por diferenciación. Lo ponderamos con su m²
+  return interpolatePts(ticket, pts);
+}
+
+// Absorción del proyecto basada en mix de tipologías y precio/m²
+function calcProjectAbsorption(pm2, ta, tb, tc, td){
+  const total = ta+tb+tc+td;
+  if(total===0) return 0;
+  const pA=ta/total, pB=tb/total, pC=tc/total, pD=td/total;
+  const absA = absForTicket(pm2*TIP_M2.A);
+  const absB = absForTicket(pm2*TIP_M2.B);
+  const absC = absForTicket(pm2*TIP_M2.C);
+  const absD = absForTicket(pm2*TIP_M2.D);
+  return pA*absA + pB*absB + pC*absC + pD*absD;
+}
+
+// Curva de absorción mensual NO lineal (realista)
+// Alta al lanzamiento → aplana en el centro → leve repunte por escasez
+function buildAbsorptionCurve(totalUnits, avgAbsPerMonth){
+  const sellMonths = Math.ceil(totalUnits/avgAbsPerMonth);
+  const totalMonths = sellMonths + 4;
+  const rates = [];
+  for(let m=0;m<totalMonths;m++){
+    const t = m / Math.max(sellMonths-1,1);
+    // f(t) = lanzamiento (spike) + base estable + escasez final
+    const launch   = 1.5 * Math.exp(-6*t);       // Alto inicio, decae rápido
+    const stable   = 0.72;                         // Base constante
+    const scarcity = 0.45 * Math.exp(-7*(1-t));   // Sube al final
+    rates.push(Math.max(launch+stable+scarcity, 0.1));
+  }
+  // Normalizar para que la suma = totalUnits
+  const rawSum = rates.reduce((s,r)=>s+r,0);
+  const norm = totalUnits / rawSum;
+  let cumul = 0;
+  const monthly=[], cumulative=[], labels=[];
+  for(let m=0;m<totalMonths;m++){
+    const v = Math.min(rates[m]*norm, totalUnits-cumul);
+    monthly.push(+v.toFixed(2));
+    cumul = Math.min(cumul+v, totalUnits);
+    cumulative.push(+cumul.toFixed(1));
+    labels.push('M'+(m+1));
+    if(cumul>=totalUnits) break;
+  }
+  return {monthly, cumulative, labels};
+}
+
+// ===================== CHART REGISTRY =====================
+const charts={};
+function mkChart(id,type,data,opts={}){
+  if(charts[id]){charts[id].destroy();delete charts[id]}
+  const ctx=document.getElementById(id);
+  if(!ctx) return;
+  charts[id]=new Chart(ctx,{type,data,options:{responsive:true,plugins:{legend:{labels:{color:colors().muted,font:{size:11}}}},...opts}});
+  return charts[id];
+}
+
+// ===================== BUILD COMPETITOR TABLE =====================
+function buildTable(){
+  const tb=document.getElementById('comp-table');
+  if(!tb) return;
+  const badge={Residencial:'badge-res','Residencial Plus':'badge-plus','Económica':'badge-eco'};
+  tb.innerHTML=DEV.map((d,i)=>`
+    <tr class="${i===0?'leader':''}">
+      <td><strong>${d.name}</strong></td>
+      <td><span class="badge ${badge[d.type]||''}">${d.type}</span></td>
+      <td>${['Oct 23','Jul 22','Feb 25','Abr 21','Oct 22','Sep 25','Oct 22','Sep 22'][i]}</td>
+      <td>${['Feb 26','Mar 27','—','Jun 26','Sep 28','Sep 28','Jun 26','Dic 27'][i]}</td>
+      <td>${fmtN(d.offer)}</td>
+      <td>${fmtN(d.sold)}</td>
+      <td>${Math.round(d.sold/d.offer*100)}%</td>
+      <td>${d.m2} m²</td>
+      <td>${d.price?fmt(d.price):'N/D'}</td>
+      <td>${d.pm2?'$'+fmtN(d.pm2):'N/D'}</td>
+      <td style="color:${d.abs>=4?'#4ecdc4':d.abs>=2.5?'#f39c12':'#e74c3c'};font-weight:800">${d.abs}</td>
+    </tr>`).join('');
+}
+
+// ===================== INIT CHARTS =====================
+function initCharts(){
+  const C=colors();
+
+  // Absorcion bar
+  mkChart('c-absorcion','bar',{
+    labels:DEV.map(d=>d.name),
+    datasets:[{label:'Absorción u/mes',data:DEV.map(d=>d.abs),backgroundColor:DEV.map(d=>d.abs>=4?C.primary:d.abs>=2.5?C.warning+'aa':C.negative+'aa'),borderRadius:6}]
+  },{plugins:{legend:{display:false}},scales:{y:{grid:{color:C.border},ticks:{color:C.muted}},x:{grid:{display:false},ticks:{color:C.muted,font:{size:10}}}}});
+
+  // Dist donut
+  mkChart('c-dist','doughnut',{
+    labels:['Vendidos (737)','Disponibles (352)'],
+    datasets:[{data:[737,352],backgroundColor:[C.primary,C.surface2],borderColor:[C.primary+'33',C.border],borderWidth:1}]
+  },{cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:C.muted,font:{size:11}}}}});
+
+  // Recamaras
+  mkChart('c-rec','doughnut',{
+    labels:['1 rec (38%)','2 rec (53%)','3 rec (9%)'],
+    datasets:[{data:[38.06,53.43,8.52],backgroundColor:[C.accent+'99',C.primary,C.warning+'aa'],borderWidth:0}]
+  },{cutout:'60%',plugins:{legend:{position:'bottom',labels:{color:C.muted,font:{size:10}}}}});
+
+  // Estacionamiento
+  mkChart('c-est','doughnut',{
+    labels:['1 cajón (25%)','2 cajones (75%)'],
+    datasets:[{data:[25,75],backgroundColor:[C.accent+'55',C.primary],borderWidth:0}]
+  },{cutout:'60%',plugins:{legend:{position:'bottom',labels:{color:C.muted,font:{size:10}}}}});
+
+  // Baños
+  mkChart('c-ban','doughnut',{
+    labels:['1 baño (33%)','2 baños (62%)','3+ baños (5%)'],
+    datasets:[{data:[32.89,62.22,4.89],backgroundColor:[C.accent+'55',C.primary,C.warning+'aa'],borderWidth:0}]
+  },{cutout:'60%',plugins:{legend:{position:'bottom',labels:{color:C.muted,font:{size:10}}}}});
+
+  // Range absorption
+  mkChart('c-rangeabs','bar',{
+    labels:RANGES.map(r=>r.r+' m²'),
+    datasets:[{label:'Absorción u/mes',data:RANGES.map(r=>r.abs),backgroundColor:RANGES.map(r=>r.abs>=5?C.primary:r.abs>=3?C.accent+'aa':C.muted+'55'),borderRadius:6}]
+  },{plugins:{legend:{display:false}},scales:{y:{grid:{color:C.border},ticks:{color:C.muted}},x:{grid:{display:false},ticks:{color:C.muted,font:{size:11}}}}});
+
+  // Price vs absorption scatter (market data)
+  const scatterDev=DEV.filter(d=>d.pm2).map(d=>({x:d.pm2,y:d.abs,label:d.name}));
+  mkChart('c-pvm2','scatter',{
+    datasets:[{
+      label:'Desarrollos',
+      data:scatterDev,
+      backgroundColor:C.primary+'cc',
+      pointRadius:8,
+      pointHoverRadius:10
+    }]
+  },{plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const d=scatterDev[ctx.dataIndex];return`${d.label} · $${(d.x/1000).toFixed(1)}k/m² · ${d.y} u/mes`}}}},scales:{x:{title:{display:true,text:'Precio/m²',color:C.muted},grid:{color:C.border},ticks:{color:C.muted,callback:v=>'$'+(v/1000).toFixed(0)+'k'}},y:{title:{display:true,text:'Absorción',color:C.muted},grid:{color:C.border},ticks:{color:C.muted}}}});
+
+  // Oferta vs vendidos
+  mkChart('c-ofervend','bar',{
+    labels:RANGES.map(r=>r.r+' m²'),
+    datasets:[
+      {label:'Oferta',data:RANGES.map(r=>r.offer),backgroundColor:C.surface2,borderRadius:4},
+      {label:'Vendidos',data:RANGES.map(r=>r.sold),backgroundColor:C.primary+'cc',borderRadius:4}
+    ]
+  },{scales:{y:{grid:{color:C.border},ticks:{color:C.muted}},x:{grid:{display:false},ticks:{color:C.muted,font:{size:10}}}},plugins:{legend:{labels:{color:C.muted}}}});
+
+  // Ticket por rango
+  mkChart('c-ticket','bar',{
+    labels:RANGES.map(r=>r.r+' m²'),
+    datasets:[{label:'Precio Lista Prom',data:RANGES.map(r=>r.price/1e6),backgroundColor:RANGES.map(r=>r.price<4e6?C.positive+'aa':r.price<5e6?C.warning+'aa':C.negative+'aa'),borderRadius:6}]
+  },{plugins:{legend:{display:false}},scales:{y:{grid:{color:C.border},ticks:{color:C.muted,callback:v=>'$'+v.toFixed(1)+'M'}},x:{grid:{display:false},ticks:{color:C.muted,font:{size:10}}}}});
+
+  // Bubble chart (competidores)
+  mkChart('c-bubble','bubble',{
+    datasets:DEV.filter(d=>d.pm2).map(d=>({
+      label:d.name,
+      data:[{x:d.pm2/1000,y:d.abs,r:Math.sqrt(d.offer)*1.2}],
+      backgroundColor:d.type==='Residencial Plus'?C.warning+'99':d.type==='Económica'?C.positive+'99':C.primary+'99'
+    }))
+  },{plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: $${ctx.raw.x.toFixed(1)}k/m² · ${ctx.raw.y} abs`}}},scales:{x:{title:{display:true,text:'$/m² (miles)',color:C.muted},grid:{color:C.border},ticks:{color:C.muted}},y:{title:{display:true,text:'Absorción u/mes',color:C.muted},grid:{color:C.border},ticks:{color:C.muted}}}});
+
+  // Gantt (horizontal bar as timeline)
+  mkChart('c-gantt','bar',{
+    labels:DEV.map(d=>d.name),
+    datasets:[
+      {label:'Inicio→',data:DEV.map(d=>d.start-2021),backgroundColor:'transparent'},
+      {label:'Duración',data:DEV.map(d=>d.end-d.start),backgroundColor:DEV.map(d=>d.type==='Residencial Plus'?C.warning+'cc':d.type==='Económica'?C.positive+'cc':C.primary+'cc'),borderRadius:4}
+    ]
+  },{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{min:0,max:8,grid:{color:C.border},ticks:{color:C.muted,callback:v=>(2021+v).toFixed(0)}},y:{grid:{display:false},ticks:{color:C.muted,font:{size:10}}}}});
+
+  // Smart mix donut
+  mkChart('c-smartmix','doughnut',{
+    labels:['Tip A 40–50m² (32%)','Tip C 70–80m² (45%)','Tip D 90–100m² (23%)'],
+    datasets:[{data:[32.13,45.27,22.59],backgroundColor:[C.accent+'99',C.primary,C.warning+'cc'],borderWidth:0}]
+  },{cutout:'55%',plugins:{legend:{position:'bottom',labels:{color:C.muted,font:{size:11}}}}});
+
+  // Eficiencia habitable
+  mkChart('c-efic','bar',{
+    labels:['Tip A (40–50m²)','Tip C (70–80m²)','Tip D (90–100m²)'],
+    datasets:[
+      {label:'% Habitable Interior',data:[100,96,84],backgroundColor:C.primary+'cc',borderRadius:6},
+      {label:'% Exterior',data:[0,4,16],backgroundColor:C.warning+'99',borderRadius:6}
+    ]
+  },{plugins:{legend:{labels:{color:C.muted}}},scales:{x:{stacked:true,grid:{display:false},ticks:{color:C.muted}},y:{stacked:true,grid:{color:C.border},ticks:{color:C.muted,callback:v=>v+'%'},max:100}}});
+
+  // Escenarios charts
+  initScenarioCharts();
+  updateScenario();
+  calcFin();
+}
+
+// ===================== ESCENARIOS =====================
+function getScenarioData(overrides={}){
+  const pm2 = overrides.pm2 ?? parseInt(document.getElementById('sl-pm2').value);
+  const units= overrides.units?? parseInt(document.getElementById('sl-units').value);
+  const ta   = overrides.ta   ?? parseInt(document.getElementById('sl-ta').value);
+  const tb   = overrides.tb   ?? parseInt(document.getElementById('sl-tb').value);
+  const tc   = overrides.tc   ?? parseInt(document.getElementById('sl-tc').value);
+  const td   = overrides.td   ?? parseInt(document.getElementById('sl-td').value);
+
+  // Normalizar mix si suma > 100
+  const mixSum = ta+tb+tc+td;
+  const nA=mixSum?ta/mixSum*100:ESTRELLA.mixA;
+  const nB=mixSum?tb/mixSum*100:ESTRELLA.mixB;
+  const nC=mixSum?tc/mixSum*100:ESTRELLA.mixC;
+  const nD=mixSum?td/mixSum*100:ESTRELLA.mixD;
+
+  // Absorción basada en Producto Estrella (mix + ticket)
+  const abs = calcProjectAbsorption(pm2, nA, nB, nC, nD);
+
+  // Ticket promedio ponderado por mix
+  const avgM2 = (nA*TIP_M2.A + nB*TIP_M2.B + nC*TIP_M2.C + nD*TIP_M2.D)/100;
+  const ticket = pm2 * avgM2;
+  const revenue = ticket * units;
+  const meses = units / Math.max(abs, 0.1);
+
+  // Comparación vs Producto Estrella base
+  const vsEstrella = ((abs - ESTRELLA.abs)/ESTRELLA.abs*100).toFixed(1);
+  const vsMkt = ((abs - 3.27)/3.27*100).toFixed(1);
+
+  return {pm2, units, ta:nA, tb:nB, tc:nC, td:nD, mixSum, abs, avgM2, ticket, revenue, meses, vsEstrella, vsMkt};
+}
+
+function updateScenario(){
+  const d = getScenarioData();
+  const mixWarn = d.mixSum>100;
+  document.getElementById('mix-warning').style.display = mixWarn?'block':'none';
+
+  // Labels de sliders
+  document.getElementById('sv-pm2').textContent  = '$'+parseInt(document.getElementById('sl-pm2').value).toLocaleString('es-MX');
+  document.getElementById('sv-units').textContent = document.getElementById('sl-units').value;
+  document.getElementById('sv-m2').textContent    = d.avgM2.toFixed(0)+' m² prom';
+  document.getElementById('sv-ta').textContent    = document.getElementById('sl-ta').value+'%';
+  document.getElementById('sv-tb').textContent    = document.getElementById('sl-tb').value+'%';
+  document.getElementById('sv-tc').textContent    = document.getElementById('sl-tc').value+'%';
+  document.getElementById('sv-td').textContent    = document.getElementById('sl-td').value+'%';
+
+  // Outputs principales
+  document.getElementById('out-abs').textContent    = d.abs.toFixed(2);
+  document.getElementById('out-meses').textContent  = d.meses.toFixed(1);
+  document.getElementById('out-rev').textContent    = '$'+(d.revenue/1e6).toFixed(1)+'M';
+  document.getElementById('out-ticket').textContent = '$'+(d.ticket/1e6).toFixed(2)+'M';
+  document.getElementById('out-mdi').textContent    = d.meses.toFixed(1);
+  const vsEl = document.getElementById('out-vs');
+  vsEl.textContent = (d.vsEstrella>=0?'+':'')+d.vsEstrella+'% vs ⭐';
+  vsEl.style.color = d.vsEstrella>=0?colors().positive:colors().negative;
+
+  // Actualizar las 3 tarjetas de escenario con el mix activo y su precio
+  const priceScens = [{id:'cons',pm2:52000},{id:'base',pm2:59331},{id:'agr',pm2:68000}];
+  priceScens.forEach(s=>{
+    const sd = getScenarioData({pm2:s.pm2});
+    document.getElementById('sc-abs-'+s.id).textContent = sd.abs.toFixed(2);
+    document.getElementById('sc-rev-'+s.id).textContent = '$'+(sd.revenue/1e6).toFixed(1)+'M · '+sd.meses.toFixed(0)+'m';
+  });
+
+  updateInsight(d);
+  updateScenarioCharts(d);
+}
+
+function updateInsight(d){
+  const C=colors();
+  let zone='',color='',recs=[];
+  if(d.pm2<50000){zone='ZONA DE RIESGO BAJO PRECIO';color=C.warning;recs=['El precio bajo puede generar percepción de baja calidad','Absorción moderada pero margen comprometido','Considerar subir a $55k+ para entrar al sweet spot']}
+  else if(d.pm2<=68000){zone='ZONA ÓPTIMA ✓';color=C.positive;recs=[`Absorción de ${d.abs.toFixed(2)} u/mes supera el promedio de zona (3.27)`,'Ticket dentro del umbral de resistencia de $5M','Posición competitiva fuerte vs. portafolio activo','MDI de '+d.mdi.toFixed(1)+' meses es saludable para el mercado']}
+  else if(d.pm2<=75000){zone='ZONA DE TRANSICIÓN';color=C.warning;recs=['Precio elevado requiere diferenciación fuerte en amenidades','Absorción cae por debajo del promedio de zona','Requiere avance de obra >60% para mantener confianza del comprador','Segmento Residencial Plus: asegurar terrazas generosas']}
+  else{zone='ZONA DE ALTO RIESGO';color=C.negative;recs=['Avila Zapopan a $77k absorbe solo 1.21 u/mes','Inventario tardaría '+d.mdi.toFixed(0)+' meses en cerrarse','Resistencia fuerte del mercado por encima de $75k/m²','Requiere diferenciación radical o reducir precio']}
+  document.getElementById('insight-text').innerHTML=`
+    <div style="background:${color}22;border:1px solid ${color};border-radius:10px;padding:16px;margin-bottom:16px">
+      <div style="font-size:10px;font-weight:800;letter-spacing:.5px;color:${color};margin-bottom:6px">${zone}</div>
+      <div style="font-size:20px;font-weight:900;color:var(--text)">${d.abs.toFixed(2)} u/mes</div>
+      <div style="font-size:11px;color:var(--text-muted)">absorción proyectada</div>
+    </div>
+    ${recs.map(r=>`<div style="font-size:12px;color:var(--text-muted);padding:8px 0;border-bottom:1px solid var(--border);padding-left:12px;position:relative"><span style="position:absolute;left:0;color:var(--primary)">→</span>${r}</div>`).join('')}`;
+}
+
+function initScenarioCharts(){
+  const C=colors();
+  const d=getScenarioData();
+
+  // Curva absorción: eje X = Precio/m², eje Y = absorción proyectada con mix actual
+  const pm2Steps=[];const absSteps=[];
+  for(let p=40000;p<=82000;p+=1000){
+    pm2Steps.push('$'+(p/1000).toFixed(0)+'k');
+    absSteps.push(+calcProjectAbsorption(p,d.ta,d.tb,d.tc,d.td).toFixed(2));
+  }
+  mkChart('c-esc-curve','line',{
+    labels:pm2Steps,
+    datasets:[
+      {label:'Absorción con mix actual',data:absSteps,borderColor:C.primary,backgroundColor:C.primary+'22',fill:true,tension:.35,pointRadius:0,borderWidth:2.5},
+      {label:'Estrella Base ($59k)',data:pm2Steps.map((_,i)=>i===Math.round((59331-40000)/1000)?ESTRELLA.abs:null),type:'scatter',backgroundColor:C.accent,borderColor:C.accent,pointRadius:10,pointStyle:'star'},
+      {label:'Tu Proyecto',data:pm2Steps.map((_,i)=>i===Math.round((d.pm2-40000)/1000)?d.abs:null),type:'scatter',backgroundColor:C.warning,borderColor:C.warning,pointRadius:9,pointStyle:'circle'}
+    ]
+  },{plugins:{legend:{labels:{color:C.muted,font:{size:10}}}},scales:{x:{grid:{color:C.border},ticks:{color:C.muted,maxTicksLimit:12,font:{size:10}}},y:{grid:{color:C.border},ticks:{color:C.muted},title:{display:true,text:'Absorción u/mes',color:C.muted}}}});
+
+  // Revenue sensitivity con mix actual
+  const priceRange=[42,46,50,54,58,62,66,70,74,78];
+  const units=parseInt(document.getElementById('sl-units').value)||88;
+  mkChart('c-esc-rev','bar',{
+    labels:priceRange.map(v=>'$'+v+'k'),
+    datasets:[{
+      label:'Revenue Total (M MXN)',
+      data:priceRange.map(p=>{
+        const a=calcProjectAbsorption(p*1000,d.ta,d.tb,d.tc,d.td);
+        const avgM2=d.avgM2||74;
+        return +((p*1000*avgM2*units)/1e6).toFixed(1);
+      }),
+      backgroundColor:priceRange.map(p=>p>=56&&p<=66?C.primary+'dd':C.muted+'44'),
+      borderRadius:6
+    },{
+      label:'Absorción u/mes',
+      data:priceRange.map(p=>+calcProjectAbsorption(p*1000,d.ta,d.tb,d.tc,d.td).toFixed(2)),
+      type:'line',borderColor:C.accent,backgroundColor:'transparent',yAxisID:'y2',tension:.3,pointRadius:4
+    }]
+  },{plugins:{legend:{labels:{color:C.muted,font:{size:10}}}},scales:{
+    y:{grid:{color:C.border},ticks:{color:C.muted,callback:v=>'$'+v+'M'},title:{display:true,text:'Revenue (M)',color:C.muted}},
+    y2:{position:'right',grid:{display:false},ticks:{color:C.muted},title:{display:true,text:'Absorción',color:C.muted}},
+    x:{grid:{display:false},ticks:{color:C.muted,font:{size:10}}}
+  }});
+
+  // Curva de ventas mensual NO lineal
+  const curve=buildAbsorptionCurve(d.units,d.abs);
+  mkChart('c-esc-sales','bar',{
+    labels:curve.labels,
+    datasets:[
+      {label:'Ventas/mes (u)',data:curve.monthly,backgroundColor:curve.monthly.map((v,i)=>{
+        const t=i/curve.monthly.length;
+        return t<0.2?C.primary+'ee':t>0.75?C.accent+'cc':C.primary+'77';
+      }),borderRadius:4,yAxisID:'y'},
+      {label:'Acumulado (u)',data:curve.cumulative,type:'line',borderColor:C.warning,backgroundColor:'transparent',tension:.4,yAxisID:'y2',pointRadius:0,borderWidth:2}
+    ]
+  },{plugins:{legend:{labels:{color:C.muted,font:{size:10}}}},scales:{
+    y:{grid:{color:C.border},ticks:{color:C.muted},title:{display:true,text:'u/mes',color:C.muted}},
+    y2:{position:'right',grid:{display:false},ticks:{color:C.muted},title:{display:true,text:'Acumulado',color:C.muted},max:d.units*1.05},
+    x:{grid:{display:false},ticks:{color:C.muted,maxTicksLimit:15}}
+  }});
+
+  // Comparativo 3 escenarios con mix actual
+  const scLabels=['Conservador\n$52k/m²','Base ⭐\n$59k/m²','Agresivo\n$68k/m²'];
+  const scPrices=[52000,59331,68000];
+  const scAbs=scPrices.map(p=>calcProjectAbsorption(p,d.ta,d.tb,d.tc,d.td));
+  mkChart('c-esc-comp','bar',{
+    labels:scLabels,
+    datasets:[
+      {label:'Absorción u/mes',data:scAbs.map(a=>+a.toFixed(2)),backgroundColor:[C.muted+'88',C.primary+'dd',C.warning+'aa'],borderRadius:6,yAxisID:'y'},
+      {label:'Meses cierre',data:scAbs.map(a=>+(d.units/a).toFixed(1)),type:'line',borderColor:C.accent,backgroundColor:'transparent',yAxisID:'y2',tension:.3,pointRadius:6,borderWidth:2}
+    ]
+  },{plugins:{legend:{labels:{color:C.muted,font:{size:10}}}},scales:{
+    y:{grid:{color:C.border},ticks:{color:C.muted},title:{display:true,text:'Absorción u/mes',color:C.muted}},
+    y2:{position:'right',grid:{display:false},ticks:{color:C.muted},title:{display:true,text:'Meses cierre',color:C.muted}},
+    x:{grid:{display:false},ticks:{color:C.muted}}
+  }});
+}
+
+function updateScenarioCharts(d){
+  const C=colors();
+
+  // Curva absorción — actualizar datos con mix actual
+  if(charts['c-esc-curve']){
+    const absSteps=[];
+    for(let p=40000;p<=82000;p+=1000) absSteps.push(+calcProjectAbsorption(p,d.ta,d.tb,d.tc,d.td).toFixed(2));
+    charts['c-esc-curve'].data.datasets[0].data=absSteps;
+    const idx=Math.round((d.pm2-40000)/1000);
+    const dotY=charts['c-esc-curve'].data.datasets[0].data[idx]||null;
+    charts['c-esc-curve'].data.datasets[2].data=charts['c-esc-curve'].data.labels.map((_,i)=>i===idx?dotY:null);
+    charts['c-esc-curve'].update('none');
+  }
+
+  // Revenue sensitivity — actualizar con mix actual
+  if(charts['c-esc-rev']){
+    const priceRange=[42,46,50,54,58,62,66,70,74,78];
+    charts['c-esc-rev'].data.datasets[0].data=priceRange.map(p=>+((p*1000*d.avgM2*d.units)/1e6).toFixed(1));
+    charts['c-esc-rev'].data.datasets[1].data=priceRange.map(p=>+calcProjectAbsorption(p*1000,d.ta,d.tb,d.tc,d.td).toFixed(2));
+    charts['c-esc-rev'].data.datasets[0].backgroundColor=priceRange.map(p=>{
+      const cur=d.pm2/1000; return Math.abs(p-cur)<=2?C.primary+'dd':C.muted+'44';
+    });
+    charts['c-esc-rev'].update('none');
+  }
+
+  // Curva de ventas mensual NO lineal
+  if(charts['c-esc-sales']){
+    const curve=buildAbsorptionCurve(d.units,d.abs);
+    charts['c-esc-sales'].data.labels=curve.labels;
+    charts['c-esc-sales'].data.datasets[0].data=curve.monthly;
+    charts['c-esc-sales'].data.datasets[0].backgroundColor=curve.monthly.map((_,i)=>{
+      const t=i/curve.monthly.length;
+      return t<0.2?C.primary+'ee':t>0.75?C.accent+'cc':C.primary+'77';
+    });
+    charts['c-esc-sales'].data.datasets[1].data=curve.cumulative;
+    charts['c-esc-sales'].options.scales.y2.max=d.units*1.05;
+    charts['c-esc-sales'].update('none');
+  }
+
+  // Comparativo — actualizar con mix actual
+  if(charts['c-esc-comp']){
+    const scPrices=[52000,59331,68000];
+    const scAbs=scPrices.map(p=>calcProjectAbsorption(p,d.ta,d.tb,d.tc,d.td));
+    charts['c-esc-comp'].data.datasets[0].data=scAbs.map(a=>+a.toFixed(2));
+    charts['c-esc-comp'].data.datasets[1].data=scAbs.map(a=>+(d.units/a).toFixed(1));
+    charts['c-esc-comp'].update('none');
+  }
+}
+
+function loadScenario(type){
+  const configs={
+    conservador:{pm2:52000},
+    base:{pm2:59331},
+    agresivo:{pm2:68000}
+  };
+  document.getElementById('sl-pm2').value=configs[type].pm2;
+  updateScenario();
+  document.querySelectorAll('.scenario-card').forEach((el,i)=>{
+    el.classList.toggle('active-scenario',['conservador','base','agresivo'][i]===type);
+  });
+}
+
+// ===================== FINANCIERO =====================
+function calcFin(){
+  const units=+document.getElementById('fi-units').value||88;
+  const m2=+document.getElementById('fi-m2').value||74;
+  const pm2=+document.getElementById('fi-pm2').value||59331;
+  const cost=+document.getElementById('fi-cost').value||28000;
+  const land=+document.getElementById('fi-land').value||15000000;
+  const ind=+document.getElementById('fi-indirect').value||18;
+  const C=colors();
+
+  const revenue=units*m2*pm2;
+  const constructCost=units*m2*cost;
+  const indirect=revenue*ind/100;
+  const totalCost=constructCost+land+indirect;
+  const utilidad=revenue-totalCost;
+  const margen=utilidad/revenue*100;
+  const abs=calcProjectAbsorption(pm2,ESTRELLA.mixA,ESTRELLA.mixB,ESTRELLA.mixC,ESTRELLA.mixD);
+  const meses=units/abs;
+  const roiAnual=margen/(meses/12)*100;
+
+  const results=[
+    {name:'Revenue Total',value:fmt(revenue),cls:''},{name:'Costo Construcción',value:fmt(constructCost),cls:'neg'},
+    {name:'Costo Predio',value:fmt(land),cls:'neg'},{name:'Indirectos + Comercialización',value:fmt(indirect),cls:'neg'},
+    {name:'Costo Total',value:fmt(totalCost),cls:'neg'},{name:'Utilidad Bruta',value:fmt(utilidad),cls:utilidad>0?'pos':'neg'},
+    {name:'Margen Bruto',value:margen.toFixed(1)+'%',cls:margen>20?'pos':margen>10?'':'neg'},
+    {name:'Absorción Proyectada',value:abs.toFixed(2)+' u/mes',cls:''},{name:'Tiempo Cierre',value:meses.toFixed(1)+' meses',cls:''},
+    {name:'ROI Anualizado',value:roiAnual.toFixed(1)+'%',cls:roiAnual>15?'pos':roiAnual>8?'':'neg'}
+  ];
+  document.getElementById('fin-results').innerHTML=results.map(r=>`
+    <div class="result-card"><span class="result-name">${r.name}</span><span class="result-value ${r.cls}">${r.value}</span></div>`).join('');
+
+  // Waterfall
+  if(charts['c-fin-waterfall']) charts['c-fin-waterfall'].destroy();
+  const wData=[revenue/1e6,-constructCost/1e6,-land/1e6,-indirect/1e6,utilidad/1e6];
+  const wLabels=['Revenue','- Construcción','- Predio','- Indirectos','= Utilidad'];
+  mkChart('c-fin-waterfall','bar',{
+    labels:wLabels,
+    datasets:[{label:'MXN (Millones)',data:wData,backgroundColor:wData.map((v,i)=>i===0?C.primary+'cc':i===4?(v>0?C.positive+'cc':C.negative+'cc'):C.negative+'88'),borderRadius:6}]
+  },{plugins:{legend:{display:false}},scales:{y:{grid:{color:C.border},ticks:{color:C.muted,callback:v=>'$'+v.toFixed(1)+'M'}},x:{grid:{display:false},ticks:{color:C.muted}}}});
+
+  // Flujo de caja con curva de absorción real (no lineal)
+  const fCurve=buildAbsorptionCurve(units,abs);
+  const ingresos=fCurve.monthly.map(v=>+(v*pm2*m2/1e6).toFixed(2));
+  mkChart('c-flujo','bar',{
+    labels:fCurve.labels,
+    datasets:[{label:'Ingresos por ventas (M MXN)',data:ingresos,
+      backgroundColor:ingresos.map((_,i)=>{const t=i/ingresos.length;return t<0.2?C.positive+'cc':t>0.75?C.accent+'cc':C.primary+'99';}),
+      borderRadius:4}]
+  },{plugins:{legend:{labels:{color:C.muted}}},scales:{y:{grid:{color:C.border},ticks:{color:C.muted,callback:v=>'$'+v.toFixed(1)+'M'}},x:{grid:{display:false},ticks:{color:C.muted,maxTicksLimit:15}}}});
+}
+
+// ===================== REBUILD ON THEME CHANGE =====================
+function rebuildCharts(){setTimeout(initCharts,100)}
+
+// ===================== INIT =====================
+window.addEventListener('load',()=>{
+  buildTable();
+  initCharts();
+});
+</script>
+</body>
+</html>
